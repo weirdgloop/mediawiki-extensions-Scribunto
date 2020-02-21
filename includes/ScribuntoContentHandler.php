@@ -227,4 +227,22 @@ class ScribuntoContentHandler extends CodeContentHandler {
 		}
 		return false;
 	}
+
+	/**
+	 * Create a redirect version of the content
+	 *
+	 * @param Title $target
+	 * @param string $text
+	 * @return ScribuntoContent
+	 */
+	public function makeRedirectContent( Title $target, $text = '' ) {
+		return Scribunto::newDefaultEngine()->makeRedirectContent( $target, $text );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function supportsRedirects() {
+		return Scribunto::newDefaultEngine()->supportsRedirects();
+	}
 }
