@@ -24,10 +24,10 @@ namespace MediaWiki\Extension\Scribunto;
 
 use MediaWiki\Extension\Scribunto\Hooks\HookRunner;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Parser\ParserOutput;
+use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
-use Parser;
-use ParserOutput;
-use Status;
 
 /**
  * Base class for all script engines. Includes all code
@@ -155,6 +155,8 @@ abstract class ScribuntoEngineBase {
 		$params = [];
 		if ( $this->title ) {
 			$params['title'] = $this->title;
+		} else {
+			wfDeprecated( __METHOD__ . ' without valid title for engine', '1.42' );
 		}
 		return $params;
 	}
@@ -172,7 +174,7 @@ abstract class ScribuntoEngineBase {
 	public function fetchModuleFromParser( Title $title ) {
 		$key = $title->getPrefixedDBkey();
 		if ( !array_key_exists( $key, $this->modules ) ) {
-			list( $text, $finalTitle ) = $this->parser->fetchTemplateAndTitle( $title );
+			[ $text, $finalTitle ] = $this->parser->fetchTemplateAndTitle( $title );
 			if ( $text === false ) {
 				$this->modules[$key] = null;
 				return null;

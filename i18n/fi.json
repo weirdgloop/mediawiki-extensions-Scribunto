@@ -13,6 +13,7 @@
 			"VezonThunder"
 		]
 	},
+	"content-model-scribunto": "Scribunto-moduuli",
 	"scribunto-desc": "Mahdollistaa komentosarjakielien käytön wikisivuilla",
 	"scribunto-line": "rivillä $1",
 	"scribunto-module-line": "kohdassa $1 rivillä $2",
