@@ -407,6 +407,11 @@ abstract class LuaEngine extends ScribuntoEngineBase {
 	}
 
 	/** @inheritDoc */
+	public function getCodeMirrorLanguage() {
+		return 'lua';
+	}
+
+	/** @inheritDoc */
 	public function runConsole( array $params ) {
 		// $resetFrames is a ScopedCallback, so it has a purpose even though it appears unused.
 		$resetFrames = $this->setupCurrentFrames();
