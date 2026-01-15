@@ -28,6 +28,7 @@ trait LuaEngineTestHelper {
 			'cpuLimit' => 30,
 			'allowEnvFuncs' => true,
 			'maxLangCacheSize' => 30,
+			'shareInvocationEnv' => false,
 		],
 		'LuaStandalone' => [
 			'class' => LuaStandaloneEngine::class,
@@ -37,6 +38,7 @@ trait LuaEngineTestHelper {
 			'cpuLimit' => 30,
 			'allowEnvFuncs' => true,
 			'maxLangCacheSize' => 30,
+			'shareInvocationEnv' => false,
 		],
 	];
 	/** @var int[] */
