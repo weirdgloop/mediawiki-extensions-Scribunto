@@ -455,6 +455,64 @@ local function newFrame( frameId, ... )
 	return frame
 end
 
+--- Create a new cloned environment for module execution.
+-- @param allowLogBuffer
+-- @return table The new environment
+local function newEnv( allowLogBuffer )
+	local savedMw = mw
+	local savedLoaded = package.loaded
+	mw = nil
+	package.loaded = nil -- No need to clone the require cache as well
+
+	local env = savedMw.clone( _G )
+	env.mw = {}
+	env.package.loaded = {}
+	makePackageModule( env )
+
+	mw = savedMw
+	package.loaded = savedLoaded
+
+	local unsafe_function_names = {
+		'makeProtectedEnvFuncs',
+		'executeModule',
+	}
+	if not allowLogBuffer then
+		table.insert( unsafe_function_names, 'getLogBuffer' )
+		table.insert( unsafe_function_names, 'clearLogBuffer' )
+	end
+
+	local mw_mt = {
+		__index = function( env_mw, key )
+			if unsafe_function_names[key] or type( key ) ~= 'string' then
+				return nil
+			end
+			local val = mw[key]
+			if not val then
+				return nil
+			end
+			env_mw[key] = mw.clone( val ) -- Cache new value in the cloned env so we only need to clone it on first lookup
+			return env_mw[key]
+		end,
+
+		__pairs = function( t )
+			for k, _ in pairs( mw ) do
+				local _ = t[k] -- Use the __index function to clone the missing allowed values
+			end
+			-- Can't use pairs to loop over t now so we make our own iterator
+			local f = function( t, k )
+				k = next( t, k )
+				return k, t[k]
+			end
+			return f, t, nil
+		end,
+
+		__metatable = 'Protected' -- Prevent this metatable from being removed
+	}
+	setmetatable( env.mw, mw_mt )
+
+	return env
+end
+
 --- Set up a cloned environment for execution of a module chunk, then execute
 -- the module in that environment. This is called by the host to implement
 -- {{#invoke}}.
@@ -465,16 +523,8 @@ end
 -- @return boolean Whether the requested value was able to be returned
 -- @return table|function|string The requested value, or if that was unable to be returned, the type of the value returned by the module
 function mw.executeModule( chunk, name, frame )
-	local env = mw.clone( _G )
-	makePackageModule( env )
-
-	-- These are unsafe
-	env.mw.makeProtectedEnvFuncs = nil
-	env.mw.executeModule = nil
-	if name ~= false then -- console sets name to false when evaluating its code and nil when evaluating a module's
-		env.mw.getLogBuffer = nil
-		env.mw.clearLogBuffer = nil
-	end
+	local allowLogBuffer = name == false -- console sets name to false when evaluating its code and nil when evaluating a module's
+	local env = newEnv( allowLogBuffer )
 
 	if allowEnvFuncs then
 		env.setfenv, env.getfenv = mw.makeProtectedEnvFuncs( {[_G] = true}, {} )
