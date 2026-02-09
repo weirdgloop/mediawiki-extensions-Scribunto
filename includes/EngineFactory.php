@@ -126,6 +126,10 @@ class EngineFactory {
 	}
 
 	public function destroyEngineForParser( Parser $parser ): void {
+		if ( isset( $this->engineForParser[$parser] ) ) {
+			$this->engineForParser[$parser]->destroy();
+		}
+
 		unset( $this->engineForParser[$parser] );
 	}
 }
