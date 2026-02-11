@@ -495,17 +495,26 @@ function mw.executeModule( chunk, name, frame )
 	end
 	local env = sharedEnv
 
-	local savedGetLogBuffer
-	local savedClearLogBuffer
 	if shareInvocationEnv then
-		-- Save getLogBuffer and clearLogBuffer so we can restore them later for the next invocation
-		savedGetLogBuffer = env.mw.getLogBuffer
-		savedClearLogBuffer = env.mw.clearLogBuffer
+		-- Reset the metatable so require( 'strict' ) doesn't affect subsequent invocations
+		setmetatable( env, nil )
+		-- Reset loaded packages so modules like strict are able to modify the metatable again if loaded.
+		-- Packages are cached anyway, so this shouldn't impact performance.
+		for k in pairs(env.package.loaded) do
+			env.package.loaded[k] = nil
+		end
 	end
 
 	if name ~= false then -- console sets name to false when evaluating its code and nil when evaluating a module's
 		env.mw.getLogBuffer = nil
 		env.mw.clearLogBuffer = nil
+	end
+	if shareInvocationEnv and (name == false or name == nil) then
+		-- Restore getLogBuffer and clearLogBuffer, in case they were removed in the previous invocation.
+		-- We also do this if name == nil because both the init function and the actual execution share the same
+		-- environment.
+		env.mw.getLogBuffer = mw.getLogBuffer
+		env.mw.clearLogBuffer = mw.clearLogBuffer
 	end
 
 	env.os.date = ttlDate
@@ -518,22 +527,7 @@ function mw.executeModule( chunk, name, frame )
 
 	setfenv( chunk, env )
 
-	local res
-	if shareInvocationEnv then
-		-- Restore getLogBuffer and clearLogBuffer even if there's an error
-		local ok
-		ok, res = pcall( chunk )
-
-		env.mw.getLogBuffer = savedGetLogBuffer
-		env.mw.clearLogBuffer = savedClearLogBuffer
-
-		if not ok then
-			error( res, 0 )
-		end
-	else
-		res = chunk()
-	end
-
+	local res = chunk()
 
 	if not name then -- catch console whether it's evaluating its own code or a module's
 		return true, res
