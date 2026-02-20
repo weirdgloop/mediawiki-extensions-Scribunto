@@ -520,6 +520,11 @@ function mw.executeModule( chunk, name, frame )
 	env.os.date = ttlDate
 	env.os.time = ttlTime
 
+	local oldGetCurrentFrame
+	if shareInvocationEnv then
+		oldGetCurrentFrame = env.mw.getCurrentFrame
+	end
+
 	frame = frame or newFrame( 'current', 'parent' )
 	env.mw.getCurrentFrame = function ()
 		return frame
@@ -527,7 +532,19 @@ function mw.executeModule( chunk, name, frame )
 
 	setfenv( chunk, env )
 
-	local res = chunk()
+	local res
+	if shareInvocationEnv then
+		local ok
+		ok, res = pcall( chunk )
+
+		env.mw.getCurrentFrame = oldGetCurrentFrame
+
+		if not ok then
+			error( res, 0 )
+		end
+	else
+		res = chunk()
+	end
 
 	if not name then -- catch console whether it's evaluating its own code or a module's
 		return true, res
