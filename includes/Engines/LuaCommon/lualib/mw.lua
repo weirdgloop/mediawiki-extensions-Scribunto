@@ -537,7 +537,9 @@ function mw.executeModule( chunk, name, frame )
 		local ok
 		ok, res = pcall( chunk )
 
-		env.mw.getCurrentFrame = oldGetCurrentFrame
+		if oldGetCurrentFrame ~= nil then
+			env.mw.getCurrentFrame = oldGetCurrentFrame
+		end
 
 		if not ok then
 			error( res, 0 )
