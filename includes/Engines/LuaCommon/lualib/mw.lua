@@ -5,6 +5,7 @@ local packageModuleFunc
 local php
 local allowEnvFuncs = false
 local shareInvocationEnv = false
+local frameMap = setmetatable( {}, { __mode = 'k' } )
 local sharedEnv
 local logBuffer = ''
 local loadedData = {}
@@ -554,13 +555,23 @@ function mw.executeModule( chunk, name, frame )
 	if type(res) ~= 'table' then
 		return false, type(res)
 	end
+
+	if shareInvocationEnv then
+		local func = res[name]
+		if type(func) == 'function' then
+			frameMap[func] = frame
+		end
+	end
+
 	return true, res[name]
 end
 
 function mw.executeFunction( chunk )
 	local getCurrentFrame = getfenv( chunk ).mw.getCurrentFrame
 	local frame
-	if getCurrentFrame then
+	if shareInvocationEnv and frameMap[chunk] then
+		frame = frameMap[chunk]
+	elseif getCurrentFrame then
 		-- Normal case
 		frame = getCurrentFrame()
 	else
