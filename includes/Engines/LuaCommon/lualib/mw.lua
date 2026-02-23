@@ -6,6 +6,7 @@ local php
 local allowEnvFuncs = false
 local shareInvocationEnv = false
 local frameMap = setmetatable( {}, { __mode = 'k' } )
+local metatableMap = setmetatable( {}, { __mode = 'k' } )
 local sharedEnv
 local logBuffer = ''
 local loadedData = {}
@@ -561,6 +562,7 @@ function mw.executeModule( chunk, name, frame )
 		if type(func) == 'function' then
 			frameMap[func] = frame
 		end
+		metatableMap[func] = getmetatable( env )
 	end
 
 	return true, res[name]
@@ -588,7 +590,22 @@ function mw.executeFunction( chunk )
 	end
 	executeFunctionDepth = executeFunctionDepth + 1
 
-	local results = { chunk( frame ) }
+	local results
+	if shareInvocationEnv then
+		if metatableMap[chunk] then
+			setmetatable( getfenv( chunk ), metatableMap[chunk] )
+		end
+		local ok, res = pcall( chunk, frame )
+
+		setmetatable( getfenv( chunk ), nil )
+
+		if not ok then
+			error( res, 0 )
+		end
+		results = { res }
+	else
+		results = { chunk( frame ) }
+	end
 
 	local stringResults = {}
 	for i, result in ipairs( results ) do
