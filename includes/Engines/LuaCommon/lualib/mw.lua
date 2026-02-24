@@ -573,6 +573,9 @@ function mw.executeFunction( chunk )
 	local frame
 	if shareInvocationEnv and frameMap[chunk] then
 		frame = frameMap[chunk]
+		getfenv( chunk ).mw.getCurrentFrame = function ()
+			return frame
+		end
 	elseif getCurrentFrame then
 		-- Normal case
 		frame = getCurrentFrame()
