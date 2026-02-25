@@ -598,14 +598,17 @@ function mw.executeFunction( chunk )
 		if metatableMap[chunk] then
 			setmetatable( getfenv( chunk ), metatableMap[chunk] )
 		end
-		local ok, res = pcall( chunk, frame )
+		-- We can't unpack 'ok' and 'res' here since functions can return multiple values
+		local pcallRes = { pcall( chunk, frame ) }
+		local ok = pcallRes[1]
 
 		setmetatable( getfenv( chunk ), nil )
 
 		if not ok then
-			error( res, 0 )
+			error( pcallRes[2], 0 )
 		end
-		results = { res }
+		table.remove( pcallRes, 1 )
+		results = pcallRes
 	else
 		results = { chunk( frame ) }
 	end
