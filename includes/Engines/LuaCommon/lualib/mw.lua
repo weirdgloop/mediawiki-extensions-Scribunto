@@ -7,7 +7,7 @@ local allowEnvFuncs = false
 local shareInvocationEnv = false
 local frameMap = setmetatable( {}, { __mode = 'k' } )
 local metatableMap = setmetatable( {}, { __mode = 'k' } )
-local sharedEnv
+local sharedEnvs = {}
 local logBuffer = ''
 local loadedData = {}
 local loadedJsonData = {}
@@ -492,10 +492,12 @@ end
 -- @return boolean Whether the requested value was able to be returned
 -- @return table|function|string The requested value, or if that was unable to be returned, the type of the value returned by the module
 function mw.executeModule( chunk, name, frame )
-	if not shareInvocationEnv or not sharedEnv then
-		sharedEnv = newEnv()
+	local env
+	if shareInvocationEnv then
+		env = table.remove( sharedEnvs, 1 ) or newEnv()
+	else
+		env = newEnv()
 	end
-	local env = sharedEnv
 
 	if shareInvocationEnv then
 		-- Reset the metatable so require( 'strict' ) doesn't affect subsequent invocations
@@ -538,6 +540,9 @@ function mw.executeModule( chunk, name, frame )
 	if shareInvocationEnv then
 		local ok
 		ok, res = pcall( chunk )
+		if #sharedEnvs < 10 then
+			table.insert( sharedEnvs, env )
+		end
 
 		if oldGetCurrentFrame ~= nil then
 			env.mw.getCurrentFrame = oldGetCurrentFrame
