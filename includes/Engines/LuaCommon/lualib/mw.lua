@@ -540,12 +540,14 @@ function mw.executeModule( chunk, name, frame )
 	if shareInvocationEnv then
 		local ok
 		ok, res = pcall( chunk )
-		if #sharedEnvs < 10 then
-			table.insert( sharedEnvs, env )
-		end
 
 		if oldGetCurrentFrame ~= nil then
 			env.mw.getCurrentFrame = oldGetCurrentFrame
+		end
+
+		if name == nil and #sharedEnvs < 10 then
+			-- If name is nil, then this is likely not a function invocation, so let's restore the env immediately
+			table.insert( sharedEnvs, getfenv( chunk ) )
 		end
 
 		if not ok then
@@ -608,6 +610,9 @@ function mw.executeFunction( chunk )
 		local ok = pcallRes[1]
 
 		setmetatable( getfenv( chunk ), nil )
+		if #sharedEnvs < 10 then
+			table.insert( sharedEnvs, getfenv( chunk ) )
+		end
 
 		if not ok then
 			error( pcallRes[2], 0 )
