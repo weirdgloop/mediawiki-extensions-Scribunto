@@ -564,12 +564,12 @@ function mw.executeModule( chunk, name, frame )
 		return false, type(res)
 	end
 
-	if shareInvocationEnv then
+	if shareInvocationEnv and name ~= nil then
 		local func = res[name]
 		if type(func) == 'function' then
 			frameMap[func] = frame
+			metatableMap[func] = getmetatable( env )
 		end
-		metatableMap[func] = getmetatable( env )
 	end
 
 	return true, res[name]
