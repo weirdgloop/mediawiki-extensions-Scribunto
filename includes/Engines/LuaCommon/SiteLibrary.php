@@ -27,6 +27,7 @@ class SiteLibrary extends LibraryBase {
 			'pagesInNamespace' => [ $this, 'pagesInNamespace' ],
 			'usersInGroup' => [ $this, 'usersInGroup' ],
 			'interwikiMap' => [ $this, 'interwikiMap' ],
+			'loadStats' => [ $this, 'loadStats' ],
 		];
 		$parser = $this->getParser();
 		$services = MediaWikiServices::getInstance();
@@ -93,8 +94,16 @@ class SiteLibrary extends LibraryBase {
 		}
 		$info['namespaces'] = self::$namespacesCache;
 
+		return $this->getEngine()->registerInterface( 'mw.site.lua', $lib, $info );
+	}
+
+	/**
+	 * Lazy-loads the site stats table.
+	 * @return int[][]
+	 */
+	public function loadStats() {
 		if ( defined( 'MW_PHPUNIT_TEST' ) ) {
-			$info['stats'] = [
+			return [ [
 				'pages' => 1,
 				'articles' => 1,
 				'files' => 0,
@@ -102,20 +111,18 @@ class SiteLibrary extends LibraryBase {
 				'users' => 1,
 				'activeUsers' => 1,
 				'admins' => 1,
-			];
-		} else {
-			$info['stats'] = [
-				'pages' => (int)SiteStats::pages(),
-				'articles' => (int)SiteStats::articles(),
-				'files' => (int)SiteStats::images(),
-				'edits' => (int)SiteStats::edits(),
-				'users' => (int)SiteStats::users(),
-				'activeUsers' => (int)SiteStats::activeUsers(),
-				'admins' => (int)SiteStats::numberingroup( 'sysop' ),
-			];
+			] ];
 		}
 
-		return $this->getEngine()->registerInterface( 'mw.site.lua', $lib, $info );
+		return [ [
+			'pages' => (int)SiteStats::pages(),
+			'articles' => (int)SiteStats::articles(),
+			'files' => (int)SiteStats::images(),
+			'edits' => (int)SiteStats::edits(),
+			'users' => (int)SiteStats::users(),
+			'activeUsers' => (int)SiteStats::activeUsers(),
+			'admins' => (int)SiteStats::numberingroup( 'sysop' ),
+		] ];
 	}
 
 	/**
