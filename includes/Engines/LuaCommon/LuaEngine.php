@@ -535,10 +535,10 @@ abstract class LuaEngine extends ScribuntoEngineBase {
 	public function loadPHPLibrary( $name ) {
 		$this->checkString( 'loadPHPLibrary', [ $name ], 0 );
 
-		$ret = null;
-		if ( isset( $this->availableLibraries[$name] ) ) {
-			$ret = $this->instantiatePHPLibrary( $name, $this->availableLibraries[$name], true );
-		}
+		$library = $this->availableLibraries[$name] ?? null;
+		$ret = $library !== null
+			? $this->instantiatePHPLibrary( $name, $library, true )
+			: null;
 
 		return [ $ret ];
 	}
