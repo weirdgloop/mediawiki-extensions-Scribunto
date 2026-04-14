@@ -301,7 +301,7 @@ abstract class LuaEngine extends ScribuntoEngineBase {
 	 * Get data logged by modules
 	 * @return string Logged data
 	 */
-	protected function getLogBuffer() {
+	public function getLogBuffer() {
 		if ( !$this->loaded ) {
 			return '';
 		}
