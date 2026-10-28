@@ -726,7 +726,7 @@ abstract class LuaEngine extends ScribuntoEngineBase {
 	 */
 	private function loadModuleFromWiki( string $name ) {
 		$title = Title::newFromText( $name );
-		if ( !$title || !$title->hasContentModel( CONTENT_MODEL_SCRIBUNTO ) ) {
+		if ( !$title ) {
 			return null;
 		}
 

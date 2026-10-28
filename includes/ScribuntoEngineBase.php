@@ -168,8 +168,9 @@ abstract class ScribuntoEngineBase {
 	public function fetchModuleFromParser( Title $title ) {
 		$key = $title->getPrefixedDBkey();
 		if ( !array_key_exists( $key, $this->modules ) ) {
-			[ $text, $finalTitle ] = $this->getParser()->fetchTemplateAndTitle( $title );
-			if ( $text === false ) {
+			[ $text, $finalTitle, $revRecord ] = $this->getParser()->fetchTemplateAndTitle( $title );
+			if ( $text === false || ( $revRecord ? $revRecord->getMainContentModel() : $title->getContentModel() )
+				!== CONTENT_MODEL_SCRIBUNTO ) {
 				$this->modules[$key] = null;
 				return null;
 			}

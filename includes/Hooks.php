@@ -138,7 +138,7 @@ class Hooks implements
 			$engine = $this->engineFactory->getEngineForParser( $parser );
 
 			$title = Title::makeTitleSafe( NS_MODULE, $moduleName );
-			if ( !$title || !$title->hasContentModel( CONTENT_MODEL_SCRIBUNTO ) ) {
+			if ( !$title ) {
 				throw new ScribuntoException( 'scribunto-common-nosuchmodule',
 					[ 'args' => [ $moduleName ] ] );
 			}
